@@ -2,14 +2,21 @@ from xgboost import XGBClassifier, XGBRegressor
 from sklearn.ensemble import RandomForestRegressor,RandomForestClassifier
 from sklearn.metrics import mean_absolute_error, r2_score, root_mean_squared_error
 from sklearn.model_selection import train_test_split
+from skl2onnx import convert_sklearn
+from skl2onnx.common.data_types import FloatTensorType
+import onnxmltools
+import numpy as np
 
 def xgb_regressor(df):
 
     x_df = df[["year",	"day" , "hour", "season", "holiday",	"workingday", "weather", "temp",
-               	"humidity", "windspeed", "casual",	"registered"]]
+               	"humidity", "windspeed", "registered"]]
     y_df = df[["count"]]
     
-    x_train, x_test, y_train, y_test = train_test_split(x_df, y_df, test_size=0.3, random_state=42)
+    x = x_df.values
+    y = y_df.values
+
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=42)
     
     print("Fitting XGBoost Regressor....")
     xgb_regr = XGBRegressor(n_estimators=300, max_depth=5, eta=0.05, random_state=42)
@@ -36,14 +43,29 @@ def xgb_regressor(df):
     print("R2:", score)
     print("RMSE:", rmse)
     print("MAE:", mae)
+    
+    # Define input type and shape
+    initial_type = [('float_input', FloatTensorType([None, 11]))]
+
+    # Convert to ONNX
+    onnx_model = onnxmltools.convert_xgboost(xgb_regr, initial_types=initial_type)
+
+    # Save the model
+    with open(r"pretrained models\xgb_model.onnx", "wb") as f:
+        f.write(onnx_model.SerializeToString())
+    
+    return xgb_regr
 
 def rf_regressor(df):
     
     x_df = df[["year",	"day" , "hour", "season", "holiday",	"workingday", "weather", "temp",
-               	"humidity", "windspeed", "casual",	"registered"]]
+               	"humidity", "windspeed", "registered"]]
     y_df = df[["count"]]
+
+    x = x_df.values.astype(np.float32)
+    y = y_df.values.astype(np.float32)
     
-    x_train, x_test, y_train, y_test = train_test_split(x_df, y_df, test_size=0.3, random_state=42)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=42)
     
     print("Fitting Random Forest Regressor....")
     rf_regr = RandomForestRegressor(n_estimators=200, max_depth=10, min_samples_split=10, random_state=42)
@@ -70,3 +92,15 @@ def rf_regressor(df):
     print("R2:", score)
     print("RMSE:", rmse)
     print("MAE:", mae)
+
+    # Define input type and shape
+    initial_type = [('float_input', FloatTensorType([None, 11]))]
+
+    # Convert to ONNX
+    onnx_model = convert_sklearn(rf_regr, initial_types=initial_type)
+
+    # Save the model
+    with open(r"pretrained models\rf_model.onnx", "wb") as f:
+        f.write(onnx_model.SerializeToString())
+
+    return rf_regr
