@@ -14,6 +14,9 @@ def data_prep(df):
     df_copy.drop("atemp", axis=1, inplace=True)
     df_copy.drop("datetime", axis=1, inplace=True)
 
+    if "casual" in df_copy.columns:
+        df_copy.drop("casual", axis=1, inplace=True)
+
     return df_copy
 
 
