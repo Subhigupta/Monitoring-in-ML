@@ -1,0 +1,18 @@
+features = ["year",	"day" , "weekday", "hour", "season", "holiday", "workingday", "weather", "temp",
+               	"humidity", "windspeed"]
+target="count"
+timestamp="datetime"
+test_size=0.3
+random_state=42
+
+[random_forest]
+n_estimators=200
+max_depth=10
+random_state=42
+min_samples_split=10
+
+[xgboost]
+n_estimators=300
+max_depth=5
+eta=0.05
+random_state=42
