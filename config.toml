@@ -1,6 +1,8 @@
 features = ["year",	"day" , "weekday", "hour", "season", "holiday", "workingday", "weather", "temp",
                	"humidity", "windspeed"]
 target="count"
+numerical_features = ['temp', 'humidity', 'windspeed', 'year', 'day', 'weekday', 'hour']
+categorical_features = ['season', 'holiday', 'workingday', 'weather']
 timestamp="datetime"
 test_size=0.3
 random_state=42
