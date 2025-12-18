@@ -1,4 +1,5 @@
 from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split
 
 from src.models.classifier import SklearnClassifier
@@ -10,7 +11,8 @@ store = AssignmentStore()
 
 def rf_clf(processed_train_df):
 
-    df_train, df_test = train_test_split(processed_train_df, test_size=config["test_size"])
+    df_train, df_test = train_test_split(processed_train_df, test_size=config["test_size"], 
+                                         random_state=config["random_state"])
 
     rf_estimator = RandomForestClassifier(**config["random_forest"])
     model = SklearnClassifier(rf_estimator, config["features"], config["target"])
@@ -19,38 +21,19 @@ def rf_clf(processed_train_df):
     metrics = model.evaluate(df_test)
 
     store.put_rf_model("rf_model.onnx", model.clf)
-    # store.put_metrics("metrics.json", metrics)
+    store.put_metrics("rf_metrics.json", metrics)
 
-# def xgb_clf(best_params):
+def xgb_clf(processed_train_df):
 
-#     config = load_config()
+    df_train, df_test = train_test_split(processed_train_df, test_size=config["test_size"], 
+                                         random_state=config["random_state"])
 
-#     df = 
-#     df_train, df_test = train_test_split(df, test_size=config["test_size"], random_state=42)
+    xgb_estimator = XGBClassifier(**config["xgboost"])
+    model = SklearnClassifier(xgb_estimator, config["features"], config["target"])
+    model.train(df_train)
 
-#     xgb_estimator = XGBClassifier(**best_params)
-#     model = SklearnClassifier(xgb_estimator, config["features"], config["target"])
-#     model.train(df_train)
+    metrics = model.evaluate(df_test)
 
-#     metrics = model.evaluate(df_test)
-
-#     store.put_model("saved_model.pkl", model)
-#     store.put_metrics("metrics.json", metrics)
-
-# if __name__ == "__main__":
-#     #print("Random Forest: Baseline model being trained!")
-#     #main()
-
-#     print("Xgboost: Finding the best hyperparameters!")
-#     study = optuna.create_study(direction="maximize")
-#     study.optimize(objective, n_trials=20)
-
-#     best_params = study.best_params
-#     # Add fixed params
-#     best_params.update({"random_state": 42,
-#         "eval_metric": "logloss"})
-    
-#     print("Best parameters:", best_params)
-    
-#     xgb_clf(best_params)
+    store.put_xgb_model("xgb_model.pkl", model.clf)
+    store.put_metrics("xgb_metrics.json", metrics)
 
