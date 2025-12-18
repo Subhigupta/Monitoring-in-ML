@@ -19,7 +19,7 @@ class Classifier(ABC):
     def predict(self, *params) -> np.ndarray:
         pass
 
-class SklearnClassifier():
+class SklearnClassifier(Classifier):
 
     def __init__(self, estimator: BaseEstimator, features: List[str], target: str,):
         self.clf = estimator
