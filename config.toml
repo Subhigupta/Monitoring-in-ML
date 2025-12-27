@@ -18,3 +18,28 @@ n_estimators=300
 max_depth=5
 eta=0.05
 random_state=42
+
+[ab_testing]
+enabled = true
+default_model = "random_forest"
+log_dir = "logs/ab_testing"
+metrics_dir = "evaluation/ab_testing"
+
+[ab_testing.data_split]
+train_ratio = 0.6
+validation_ratio = 0.2
+ab_test_ratio = 0.2
+random_state = 42
+
+[ab_testing.experiments.model_comparison_v1]
+name = "Random Forest vs XGBoost Comparison"
+status = "active"  # active, stopped, concluded
+start_date = "2024-01-15"
+
+[ab_testing.experiments.model_comparison_v1.variants.control]
+model = "random_forest"
+traffic_split = 0.5
+
+[ab_testing.experiments.model_comparison_v1.variants.treatment]
+model = "xgboost"
+traffic_split = 0.5
