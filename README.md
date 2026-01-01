@@ -91,5 +91,4 @@ It covers EDA → Feature Engineering → Offline Model Training → Offline A/B
     - Route real user requests to control and treatment models.
 - Interactive experiment dashboard
     - Visualize metrics, drift, and experiment outcomes (Streamlit / Evidently).
-- Multi-variant experimentation (A/B/n)
-    - Compare more than two models simultaneously.
+
