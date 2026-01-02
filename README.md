@@ -1,10 +1,10 @@
-**🚲 Bike Sharing Demand – End-to-End ML & A/B Testing System**
+## 🚲 Bike Sharing Demand – End-to-End ML & A/B Testing System
 
 This repository contains an end-to-end machine learning pipeline built on the Bike Sharing Demand dataset.
 
-It covers EDA → Feature Engineering → Offline Model Training → Offline A/B Testing → Evaluation → Monitoring, with a strong focus on production-style ML workflow.
+It covers EDA → Feature Engineering → Offline Model Training → Offline A/B Testing → Offline Evaluation and Comparison → Monitoring → ONNX-based Inference, with a strong focus on production-style ML workflow.
 
-**📌 Project Goals**
+### 📌 Project Goals
 
 - Build regression models to predict bike rental demand
 - Implement offline (simulated) A/B testing using historical data
@@ -15,7 +15,7 @@ It covers EDA → Feature Engineering → Offline Model Training → Offline A/B
 - Conduct data-drift monitoring
 - Run inference through pre-trained models
 
-**🛠️ Tech Stack**
+### 🛠️ Tech Stack
 - Python
 - Pandas
 - NumPy
@@ -25,7 +25,7 @@ It covers EDA → Feature Engineering → Offline Model Training → Offline A/B
 - ONNX Runtime
 - SciPy (statistical tests)
 
-**⚙️ Workflow Overview**
+### ⚙️ Workflow Overview
 
 - **Data Preparation**
     - Load the data from `data/train.csv`.
@@ -84,11 +84,22 @@ It covers EDA → Feature Engineering → Offline Model Training → Offline A/B
         - Winning variant
         - Recommendation (promote / continue / stop experiment)
 
-**🚀 Future Enhancements**
-- Real-time inference API
+- **Data Drift Monitoring and Inference**
+    
+    Execute main_inference.py to perform the following steps:
+    - **Data Drift Monitoring (Evidently AI)**
+        - Compare feature distributions of the incoming test data (data/test.csv) against the training data used to build the models.
+        - Detect potential data drift using Evidently AI to assess whether the test data remains within the training data distribution.
+    - **ONNX Runtime–based Inference**
+        - If no severe data drift is detected, perform inference using pre-trained models saved in ONNX format.
+        - Generate predictions and store in `data/predictions.csv`.
+
+
+### 🚀 Future Enhancements
+- **Real-time inference API**
     - Expose trained models via FastAPI/Flask for online predictions.
-- Production A/B testing on live traffic
+- **Production A/B testing on live traffic**
     - Route real user requests to control and treatment models.
-- Interactive experiment dashboard
+- **Interactive experiment dashboard**
     - Visualize metrics, drift, and experiment outcomes (Streamlit / Evidently).
 
