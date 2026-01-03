@@ -15,13 +15,16 @@ PROJECT_DIR = os.path.abspath(
 )
 
 MODEL_DIR = os.path.join(PROJECT_DIR, "models")
-REPORTS_DIR = os.path.join(PROJECT_DIR, "reports")
+METRICS_DIR = os.path.join(PROJECT_DIR, "evaluation")
 TOTAL_FEATURES = len(config["features"])
+
+os.makedirs(METRICS_DIR, exist_ok=True)
+os.makedirs(MODEL_DIR, exist_ok=True)
 
 class Store:
 
     model_dir = MODEL_DIR
-    reports_dir = REPORTS_DIR
+    metrics_dir = METRICS_DIR
     total_features = TOTAL_FEATURES
 
     def put_rf_onnx(self, filepath: str, python_object: Any) -> None:
@@ -69,5 +72,5 @@ class AssignmentStore(Store):
         self.put_xgb_onnx(filepath, model)
 
     def put_metrics(self, filepath: str, metrics: Dict[str, float]) -> None:
-        filepath = os.path.join(self.reports_dir, filepath)
+        filepath = os.path.join(self.metrics_dir, filepath)
         self.put_json(filepath, metrics)
