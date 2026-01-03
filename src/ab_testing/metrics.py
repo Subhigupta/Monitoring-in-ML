@@ -47,8 +47,6 @@ def calculate_ab_metrics(experiment_id: str):
 
     for row in logs:
         grouped[row["variant"]].append(row)
-    
-    # print(grouped)
 
     metrics = {}
 
