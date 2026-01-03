@@ -1,10 +1,8 @@
 """Data splitter for A/B testing holdout set."""
-
 import os
 from typing import Tuple, Optional
 import pandas as pd
 from sklearn.model_selection import train_test_split
-
 
 class ABTestDataSplitter:
     """Splits train.csv into training, validation, and A/B test sets."""
@@ -36,19 +34,13 @@ class ABTestDataSplitter:
         
         # First split: separate ab_test set
         remaining_ratio = self.train_ratio + self.validation_ratio
-        train_val_df, ab_test_df = train_test_split(
-            df,
-            test_size=self.ab_test_ratio,
-            random_state=self.config["random_state"]
-        )
+        train_val_df, ab_test_df = train_test_split(df, test_size=self.ab_test_ratio,
+                                                    random_state=self.config["random_state"])
         
         # Second split: separate train and validation
         val_ratio_adjusted = self.validation_ratio / remaining_ratio
-        train_df, validation_df = train_test_split(
-            train_val_df,
-            test_size=val_ratio_adjusted,
-            random_state=self.config["random_state"]
-        )
+        train_df, validation_df = train_test_split(train_val_df, test_size=val_ratio_adjusted,
+                                                   random_state=self.config["random_state"])
         
         return train_df, validation_df, ab_test_df
     
