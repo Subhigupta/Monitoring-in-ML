@@ -13,5 +13,6 @@ archived/
 # logs
 logs/
 
-# monitoring
+# monitoring and evaluation metrics
 monitoring/
+evaluation/
