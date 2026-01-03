@@ -65,7 +65,7 @@ class ABTestAnalyzer:
             equal_var=False
         )
 
-        is_significant = p_value < self.alpha
+        is_significant = bool(p_value < self.alpha)
 
         if is_significant:
             if treatment_mean < control_mean:
