@@ -4,13 +4,11 @@ import time
 import uuid
 from typing import Any, Dict, List, Optional, Tuple
 import pandas as pd
-import pickle
 import hashlib
 import numpy as np
-import onnxruntime as ort
-
-from .data_splitter import ABTestDataSplitter
-
+import json
+from datetime import datetime
+import os
 
 class ABTestPredictionService:
     """
@@ -26,6 +24,27 @@ class ABTestPredictionService:
         self.experiment_id = experiment_id
         self.models = models
         self.feature_columns = feature_columns
+
+    def _log_prediction(self, request_id: str, variant: str, model: str,
+                        features: Dict[str, Any], prediction: float, ground_truth: float, latency_ms: float):
+        log_entry = {
+            "request_id": request_id,
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "experiment_id": self.experiment_id,
+            "variant": variant,
+            "model": model,
+            "input_features": features,
+            "prediction": prediction,
+            "ground_truth": ground_truth,
+            "error": prediction - ground_truth,
+            "latency_ms": latency_ms,
+        }
+
+        os.makedirs("logs", exist_ok=True)
+        log_file = f"logs/{self.experiment_id}_predictions.jsonl"
+
+        with open(log_file, "a") as f:
+            f.write(json.dumps(log_entry) + "\n")
     
     def run_experiment(self, ab_test_data: pd.DataFrame, target_column: str = "count") -> Dict[str, Any]:
         """
@@ -45,11 +64,12 @@ class ABTestPredictionService:
             "predictions": []
         }
         
+        iteration =1
         for idx, row in ab_test_data.iterrows():
             request_id = f"req_{idx}"
             features = row[self.feature_columns].to_dict()
             ground_truth = row[target_column]
-            print(request_id, features,ground_truth)
+            # print(request_id, features,ground_truth)
             
             prediction, metadata = self.predict_single(features=features,ground_truth=ground_truth,
                                                        request_id=request_id)
@@ -69,8 +89,10 @@ class ABTestPredictionService:
                 "ground_truth": ground_truth,
                 "error": prediction - ground_truth
             })
-            
-            break
+
+            # iteration+=1
+            # if iteration==10:
+            #     break
         
         return results
 
@@ -81,15 +103,19 @@ class ABTestPredictionService:
         # Hash request_id + experiment_id → [0,1)
         key = f"{request_id}_{experiment_id}".encode("utf-8")
         bucket = int(hashlib.md5(key).hexdigest(), 16) % 10000 / 10000.0
+        #print("Key, bucket", key, bucket)
 
         cumulative = 0.0
         for variant_name, variant_data in experiment["variants"].items():
             cumulative += variant_data["traffic_split"]
+            #print("variant_name, variant_data, cumulative", variant_name, variant_data, cumulative)
             if bucket <= cumulative:
-                print(variant_name, variant_data["model"])
+                #print("Inside if condition: key, bucket and cumulative", key, bucket, cumulative)
+                #print(variant_name, variant_data["model"])
                 return variant_name, variant_data["model"]
 
         # Safety fallback
+        #print("outside loop key, bucket and cumulative", key, bucket, cumulative)
         first_variant = next(iter(experiment["variants"].items()))
         return first_variant[0], first_variant[1]["model"]
     
@@ -116,7 +142,7 @@ class ABTestPredictionService:
         # Get variant assignment
         variant, model_name = self.assign_variant(request_id=request_id, experiment_id=self.experiment_id,
                                              experiment=experiment)
-        print(variant, model_name)
+        # print(variant, model_name)
 
         model = self.models[model_name]
 
@@ -124,6 +150,18 @@ class ABTestPredictionService:
         input_array = np.array([list(features.values())],dtype=np.float32)
 
         prediction = model.run(None, {model.get_inputs()[0].name: input_array})[0][0]
+        
+        latency_ms = (time.time() - start_time) * 1000
+
+        self._log_prediction(
+            request_id=request_id,
+            variant=variant,
+            model=model_name,
+            features=features,
+            prediction=float(prediction),
+            ground_truth=float(ground_truth),
+            latency_ms=latency_ms
+        )
 
         metadata = {
             "request_id": request_id,
@@ -131,8 +169,6 @@ class ABTestPredictionService:
             "variant": variant,
             "model": model_name
         }
-
-        print(prediction, metadata)
 
         return prediction, metadata
        
